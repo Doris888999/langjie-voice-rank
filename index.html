@@ -23,14 +23,14 @@
         .particle { position: absolute; width: 4px; height: 4px; background: rgba(255, 215, 0, 0.6); border-radius: 50%; animation: float 6s ease-in-out infinite; }
         @keyframes float { 0%, 100% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100vh) translateX(50px); opacity: 0; } }
 
-        .container { position: relative; z-index: 1; text-align: center; padding: 2rem; max-width: 500px; width: 90%; }
+        .container { position: relative; z-index: 1; text-align: center; padding: 2rem; max-width: 500px; width: 95%; }
 
         h1 { font-size: 2.2rem; background: linear-gradient(135deg, #ffd700, #ff69b4, #ffd700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem; }
         .subtitle { color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 2rem; }
         .hide-when-result { transition: all 0.3s; }
         body.show-result .hide-when-result { display: none !important; }
         body.show-result { justify-content: center; }
-        body.show-result .container { padding-top: 0; }
+        body.show-result .container { padding-top: 0; max-width: 100%; width: 100%; }
 
         /* Top bar buttons */
         .top-bar { position: fixed; top: 1rem; right: 1rem; z-index: 50; display: flex; gap: 0.5rem; }
@@ -62,36 +62,36 @@
         .progress-text { color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-top: 0.5rem; }
 
         /* Result panel */
-        .result-panel { display: none; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.3); border-radius: 20px; padding: 1.5rem; margin-top: 1rem; backdrop-filter: blur(10px); animation: fadeIn 0.8s ease; }
+        .result-panel { display: none; padding: 1.5rem 1.5rem 2rem; animation: fadeIn 0.5s ease; text-align: center; width: 100%; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .rank-number { font-size: 3.5rem; font-weight: 900; background: linear-gradient(135deg, #ffd700, #ff69b4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.1; }
-        .rank-label { font-size: 0.85rem; color: rgba(255,255,255,0.9); margin-bottom: 0.5rem; }
+        .rank-number { font-size: 5rem; font-weight: 900; background: linear-gradient(135deg, #ffd700, #ff69b4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.1; }
+        .rank-label { font-size: 1rem; color: rgba(255,255,255,0.9); margin-bottom: 0.8rem; }
 
         /* Persona card in result */
-        .persona-card { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 0.6rem; margin: 0.5rem 0; border: 2px solid; position: relative; overflow: hidden; display: flex; align-items: center; gap: 0.8rem; }
+        .persona-card { background: rgba(255,255,255,0.05); border-radius: 14px; padding: 0.8rem 1rem; margin: 0.6rem auto; border: 2px solid; position: relative; overflow: hidden; display: flex; align-items: center; gap: 1rem; max-width: 400px; }
         .persona-card.rarity-R { border-color: #4fc3f7; }
         .persona-card.rarity-SR { border-color: #ab47bc; box-shadow: 0 0 15px rgba(171,71,188,0.3); }
         .persona-card.rarity-SSR { border-color: #ffd700; box-shadow: 0 0 20px rgba(255,215,0,0.4); }
         .persona-card.rarity-UR { border-image: linear-gradient(135deg, #ff0000, #ffd700, #00ff00, #0000ff, #ff00ff) 1; box-shadow: 0 0 25px rgba(255,0,255,0.4); }
-        .persona-rarity { position: absolute; top: 6px; right: 8px; font-size: 0.6rem; font-weight: 800; padding: 2px 6px; border-radius: 10px; }
+        .persona-rarity { position: absolute; top: 8px; right: 10px; font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 10px; }
         .rarity-R .persona-rarity { background: #4fc3f7; color: #000; }
         .rarity-SR .persona-rarity { background: #ab47bc; color: #fff; }
         .rarity-SSR .persona-rarity { background: linear-gradient(135deg, #ffd700, #ffab00); color: #000; }
         .rarity-UR .persona-rarity { background: linear-gradient(135deg, #ff0000, #ff00ff); color: #fff; }
-        .persona-emoji { font-size: 1.8rem; }
-        .persona-name { font-size: 1rem; font-weight: 700; color: #ffd700; }
-        .persona-desc { font-size: 0.7rem; color: rgba(255,255,255,0.6); }
+        .persona-emoji { font-size: 2.2rem; }
+        .persona-name { font-size: 1.15rem; font-weight: 700; color: #ffd700; }
+        .persona-desc { font-size: 0.8rem; color: rgba(255,255,255,0.6); }
         .persona-info { text-align: left; }
-        .persona-new { position: absolute; top: 6px; left: 8px; font-size: 0.6rem; background: #ff1493; color: #fff; padding: 2px 5px; border-radius: 8px; animation: blink 1s infinite; }
+        .persona-new { position: absolute; top: 8px; left: 10px; font-size: 0.65rem; background: #ff1493; color: #fff; padding: 2px 6px; border-radius: 8px; animation: blink 1s infinite; }
         @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        .rank-comment { font-size: 0.8rem; color: rgba(255,255,255,0.7); line-height: 1.4; margin: 0.4rem 0; padding: 0.5rem 0.8rem; background: rgba(255,105,180,0.1); border-radius: 10px; border-left: 3px solid #ff69b4; }
+        .rank-comment { font-size: 0.95rem; color: rgba(255,255,255,0.7); line-height: 1.4; margin: 0.6rem auto; padding: 0.6rem 1rem; background: rgba(255,105,180,0.1); border-radius: 10px; border-left: 3px solid #ff69b4; max-width: 400px; }
 
         /* Stats */
-        .stats { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.4rem; margin-top: 0.5rem; }
-        .stat-item { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 0.4rem 0.3rem; }
-        .stat-label { font-size: 0.6rem; color: rgba(255,255,255,0.5); }
-        .stat-value { font-size: 0.85rem; color: #ffd700; margin-top: 0.1rem; }
+        .stats { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.5rem; margin-top: 0.8rem; max-width: 400px; margin-left: auto; margin-right: auto; }
+        .stat-item { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 0.5rem 0.3rem; }
+        .stat-label { font-size: 0.7rem; color: rgba(255,255,255,0.5); }
+        .stat-value { font-size: 1rem; color: #ffd700; margin-top: 0.2rem; }
 
         /* PK comparison */
         .pk-section { display: none; margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,105,180,0.2); }
@@ -106,8 +106,8 @@
         .pk-result-text { margin-top: 0.8rem; font-size: 0.9rem; color: rgba(255,255,255,0.8); }
 
         /* Action buttons */
-        .action-btns { display: flex; gap: 0.5rem; margin-top: 0.8rem; flex-wrap: wrap; justify-content: center; }
-        .action-btn { padding: 0.5rem 1rem; border-radius: 30px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: all 0.3s; border: none; }
+        .action-btns { display: flex; gap: 0.8rem; margin-top: 1rem; flex-wrap: wrap; justify-content: center; }
+        .action-btn { padding: 0.7rem 1.5rem; border-radius: 30px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: all 0.3s; border: none; }
         .btn-poster { background: linear-gradient(135deg, #ff69b4, #ff1493); color: #fff; box-shadow: 0 4px 15px rgba(255,105,180,0.3); }
         .btn-challenge { background: linear-gradient(135deg, #ffd700, #ffab00); color: #000; box-shadow: 0 4px 15px rgba(255,215,0,0.3); }
         .btn-retry { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,215,0,0.4); color: #ffd700; }
