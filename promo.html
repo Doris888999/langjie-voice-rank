@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>浪姐声音挑战 - 5秒测出你的排名</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #0a0014;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+            background: radial-gradient(ellipse at 50% 30%, rgba(255, 105, 180, 0.15) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 80%, rgba(138, 43, 226, 0.1) 0%, transparent 40%),
+                        linear-gradient(180deg, #0a0014 0%, #1a0533 100%);
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.3), transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.2), transparent),
+                radial-gradient(2px 2px at 50px 160px, rgba(255,255,255,0.3), transparent),
+                radial-gradient(2px 2px at 90px 40px, rgba(255,255,255,0.2), transparent),
+                radial-gradient(2px 2px at 130px 80px, rgba(255,255,255,0.3), transparent),
+                radial-gradient(2px 2px at 160px 120px, rgba(255,255,255,0.1), transparent);
+            background-size: 200px 200px;
+            animation: twinkle 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes twinkle {
+            from { opacity: 0.5; }
+            to { opacity: 1; }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 0.4rem 1.2rem;
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            border-radius: 30px;
+            font-size: 0.85rem;
+            color: #ffd700;
+            margin-bottom: 2rem;
+            background: rgba(255, 215, 0, 0.05);
+            letter-spacing: 2px;
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            font-weight: 900;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #fff 0%, #ff69b4 50%, #ffd700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.1rem, 3vw, 1.4rem);
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.8;
+            margin-bottom: 2.5rem;
+        }
+
+        .hero-subtitle em {
+            color: #ff69b4;
+            font-style: normal;
+            font-weight: 600;
+        }
+
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, #ff69b4, #ff1493);
+            border: none;
+            border-radius: 50px;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 40px rgba(255, 105, 180, 0.4);
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 15px 50px rgba(255, 105, 180, 0.6);
+        }
+
+        .cta-btn .arrow {
+            font-size: 1.4rem;
+            transition: transform 0.3s ease;
+        }
+
+        .cta-btn:hover .arrow {
+            transform: translateX(5px);
+        }
+
+        .hero-hint {
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Sound wave animation */
+        .sound-wave {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin: 3rem 0 2rem;
+            height: 60px;
+        }
+
+        .wave-bar {
+            width: 4px;
+            background: linear-gradient(to top, #ff69b4, #ffd700);
+            border-radius: 2px;
+            animation: wave 1.2s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { height: 10px; }
+            50% { height: 50px; }
+        }
+
+        /* Sections */
+        .section {
+            padding: 5rem 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff, #ff69b4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        /* How it works */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .step {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .step:hover {
+            background: rgba(255, 105, 180, 0.05);
+            border-color: rgba(255, 105, 180, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .step-number {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #ff69b4, #ffd700);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+        }
+
+        .step-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .step-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-desc {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.5;
+        }
+
+        /* Features / Dimensions */
+        .dimensions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .dimension {
+            padding: 1.8rem;
+            background: linear-gradient(135deg, rgba(255, 105, 180, 0.08), rgba(138, 43, 226, 0.08));
+            border: 1px solid rgba(255, 105, 180, 0.15);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .dimension:hover {
+            border-color: rgba(255, 105, 180, 0.4);
+            transform: scale(1.02);
+        }
+
+        .dimension-icon {
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .dimension-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+            color: #ffd700;
+        }
+
+        .dimension-desc {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.5;
+        }
+
+        /* Rank tiers */
+        .tiers {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .tier {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1.5rem 2rem;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .tier:hover {
+            transform: translateX(10px);
+        }
+
+        .tier-1 { background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), transparent); border-left: 4px solid #ffd700; }
+        .tier-2 { background: linear-gradient(90deg, rgba(255, 105, 180, 0.12), transparent); border-left: 4px solid #ff69b4; }
+        .tier-3 { background: linear-gradient(90deg, rgba(138, 43, 226, 0.1), transparent); border-left: 4px solid #8a2be2; }
+        .tier-4 { background: linear-gradient(90deg, rgba(100, 149, 237, 0.1), transparent); border-left: 4px solid #6495ed; }
+        .tier-5 { background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), transparent); border-left: 4px solid rgba(255,255,255,0.3); }
+
+        .tier-emoji {
+            font-size: 2.2rem;
+            flex-shrink: 0;
+        }
+
+        .tier-info {
+            flex: 1;
+        }
+
+        .tier-rank {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+
+        .tier-comment {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+        }
+
+        /* Scenarios */
+        .scenarios {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .scenario {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .scenario:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+
+        .scenario-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .scenario-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+        }
+
+        .scenario-desc {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.4;
+        }
+
+        /* Privacy banner */
+        .privacy-banner {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: rgba(0, 255, 136, 0.03);
+            border-top: 1px solid rgba(0, 255, 136, 0.1);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+        }
+
+        .privacy-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .privacy-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #00ff88;
+            margin-bottom: 0.5rem;
+        }
+
+        .privacy-desc {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.6);
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Bottom CTA */
+        .bottom-cta {
+            text-align: center;
+            padding: 6rem 2rem;
+            position: relative;
+            background: radial-gradient(ellipse at 50% 100%, rgba(255, 105, 180, 0.1) 0%, transparent 60%);
+        }
+
+        .bottom-cta-title {
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            font-weight: 900;
+            margin-bottom: 1rem;
+        }
+
+        .bottom-cta-sub {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 2.5rem;
+        }
+
+        /* Phone mockup */
+        .phone-mockup {
+            width: 280px;
+            height: 560px;
+            margin: 3rem auto 0;
+            background: #1a1a2e;
+            border-radius: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            position: relative;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5),
+                        0 0 60px rgba(255, 105, 180, 0.1);
+        }
+
+        .phone-notch {
+            width: 120px;
+            height: 25px;
+            background: #0a0014;
+            border-radius: 0 0 15px 15px;
+            margin: 0 auto 15px;
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: calc(100% - 40px);
+            background: linear-gradient(180deg, #1a0533, #2d1b69);
+            border-radius: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .phone-title {
+            font-size: 1rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffd700, #ff69b4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .phone-mic {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 1rem 0;
+            background: radial-gradient(circle, rgba(255, 105, 180, 0.2), transparent);
+        }
+
+        .phone-result {
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd700, #ff69b4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .phone-comment {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 0.5rem;
+        }
+
+        /* Floating elements */
+        .floating {
+            position: absolute;
+            animation: floatUp 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatUp {
+            from { transform: translateY(0); }
+            to { transform: translateY(-15px); }
+        }
+
+        .float-note-1 {
+            top: 20%;
+            left: 10%;
+            font-size: 2rem;
+            opacity: 0.3;
+            animation-delay: 0s;
+        }
+
+        .float-note-2 {
+            top: 30%;
+            right: 8%;
+            font-size: 1.5rem;
+            opacity: 0.2;
+            animation-delay: 1s;
+        }
+
+        .float-note-3 {
+            bottom: 25%;
+            left: 15%;
+            font-size: 1.8rem;
+            opacity: 0.25;
+            animation-delay: 0.5s;
+        }
+
+        .float-note-4 {
+            bottom: 35%;
+            right: 12%;
+            font-size: 2.2rem;
+            opacity: 0.2;
+            animation-delay: 1.5s;
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 105, 180, 0.3), transparent);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .tier {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.8rem;
+            }
+
+            .phone-mockup {
+                width: 220px;
+                height: 440px;
+            }
+        }
+
+        /* Scroll animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero -->
+    <section class="hero">
+        <span class="floating float-note-1">🎵</span>
+        <span class="floating float-note-2">🎶</span>
+        <span class="floating float-note-3">♪</span>
+        <span class="floating float-note-4">♫</span>
+
+        <div class="hero-content">
+            <div class="hero-badge">AI 声音分析 · 趣味测试</div>
+            <h1 class="hero-title">你在浪姐<br>能排第几？</h1>
+            <p class="hero-subtitle">
+                开口唱 <em>5 秒</em>，AI 实时分析你的音高、音量、稳定性、表现力<br>
+                给你一个 <em>浪姐排名</em>
+            </p>
+
+            <div class="sound-wave">
+                <div class="wave-bar" style="animation-delay: 0s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.1s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.2s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.3s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.4s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.5s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.6s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.7s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.8s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.9s;"></div>
+                <div class="wave-bar" style="animation-delay: 1.0s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.1s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.2s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.3s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.4s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.5s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.6s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.7s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.8s;"></div>
+                <div class="wave-bar" style="animation-delay: 0.9s;"></div>
+            </div>
+
+            <a href="index.html" class="cta-btn">
+                开始挑战 <span class="arrow">→</span>
+            </a>
+            <p class="hero-hint">无需下载 · 无需注册 · 不上传录音</p>
+        </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="section fade-in">
+        <h2 class="section-title">三步出结果</h2>
+        <p class="section-subtitle">简单到不需要说明书</p>
+
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-icon">🎤</div>
+                <div class="step-title">点击录音</div>
+                <div class="step-desc">打开页面，授权麦克风，一键开始</div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-icon">🎵</div>
+                <div class="step-title">唱 5 秒</div>
+                <div class="step-desc">随便唱什么，你最拿手的那首，来一段</div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-icon">👑</div>
+                <div class="step-title">看排名</div>
+                <div class="step-desc">AI 分析完毕，你的浪姐排名揭晓</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- Dimensions -->
+    <section class="section fade-in">
+        <h2 class="section-title">四大维度硬核评测</h2>
+        <p class="section-subtitle">不是随便给你打分，是真的在分析</p>
+
+        <div class="dimensions">
+            <div class="dimension">
+                <div class="dimension-icon">🔊</div>
+                <div class="dimension-name">音量表现</div>
+                <div class="dimension-desc">你的气息够不够撑满全场？嗓门亮不亮？有没有大姐大的底气？</div>
+            </div>
+            <div class="dimension">
+                <div class="dimension-icon">🎵</div>
+                <div class="dimension-name">音高变化</div>
+                <div class="dimension-desc">音域宽度如何？旋律有没有层次？能不能hold住高音？</div>
+            </div>
+            <div class="dimension">
+                <div class="dimension-icon">📏</div>
+                <div class="dimension-name">稳定性</div>
+                <div class="dimension-desc">唱得稳不稳？有没有车祸现场？是稳如老狗还是摇摇欲坠？</div>
+            </div>
+            <div class="dimension">
+                <div class="dimension-icon">💫</div>
+                <div class="dimension-name">表现力</div>
+                <div class="dimension-desc">有没有情感起伏？会不会炸场？动态范围够不够征服观众？</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- Rank Tiers -->
+    <section class="section fade-in">
+        <h2 class="section-title">段位一览</h2>
+        <p class="section-subtitle">你会是哪个段位？</p>
+
+        <div class="tiers">
+            <div class="tier tier-1">
+                <div class="tier-emoji">👑</div>
+                <div class="tier-info">
+                    <div class="tier-rank">Top 3 · 绝对C位</div>
+                    <div class="tier-comment">"姐就是姐！评委全体起立，观众疯狂打call！"</div>
+                </div>
+            </div>
+            <div class="tier tier-2">
+                <div class="tier-emoji">✨</div>
+                <div class="tier-info">
+                    <div class="tier-rank">第 4-7 名 · 实力唱将</div>
+                    <div class="tier-comment">"虽不是第一但绝对是舞台焦点，唱功扎实"</div>
+                </div>
+            </div>
+            <div class="tier tier-3">
+                <div class="tier-emoji">🎵</div>
+                <div class="tier-info">
+                    <div class="tier-rank">第 8-15 名 · 潜力选手</div>
+                    <div class="tier-comment">"基础不错，多练练说不定能逆袭成黑马"</div>
+                </div>
+            </div>
+            <div class="tier tier-4">
+                <div class="tier-emoji">💪</div>
+                <div class="tier-info">
+                    <div class="tier-rank">第 16-22 名 · 态度满分</div>
+                    <div class="tier-comment">"唱功不够态度来凑，真诚才是必杀技"</div>
+                </div>
+            </div>
+            <div class="tier tier-5">
+                <div class="tier-emoji">🫣</div>
+                <div class="tier-info">
+                    <div class="tier-rank">第 23-30 名 · 综艺担当</div>
+                    <div class="tier-comment">"要不… 咱们试试综艺路线？快乐最重要！"</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- Scenarios -->
+    <section class="section fade-in">
+        <h2 class="section-title">什么时候玩？</h2>
+        <p class="section-subtitle">以下场景特别合适</p>
+
+        <div class="scenarios">
+            <div class="scenario">
+                <div class="scenario-icon">🎉</div>
+                <div class="scenario-title">朋友聚会</div>
+                <div class="scenario-desc">比比谁排名高，输的人罚酒/唱歌/发红包</div>
+            </div>
+            <div class="scenario">
+                <div class="scenario-icon">📱</div>
+                <div class="scenario-title">发朋友圈</div>
+                <div class="scenario-desc">晒排名截图，等朋友来挑战你的记录</div>
+            </div>
+            <div class="scenario">
+                <div class="scenario-icon">🎤</div>
+                <div class="scenario-title">KTV 热身</div>
+                <div class="scenario-desc">去KTV前先测测今天嗓子状态如何</div>
+            </div>
+            <div class="scenario">
+                <div class="scenario-icon">😌</div>
+                <div class="scenario-title">自嗨解闷</div>
+                <div class="scenario-desc">反复录到满意为止，挑战自己的最高排名</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Privacy -->
+    <section class="privacy-banner fade-in">
+        <div class="privacy-icon">🔒</div>
+        <div class="privacy-title">你的声音只属于你</div>
+        <div class="privacy-desc">
+            纯前端 AI 分析，声音数据不上传、不存储、不外传。<br>
+            关掉页面，一切消失。
+        </div>
+    </section>
+
+    <!-- Phone mockup + bottom CTA -->
+    <section class="bottom-cta fade-in">
+        <div class="phone-mockup">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+                <div class="phone-title">浪姐排名测试器</div>
+                <div class="phone-mic">🎤</div>
+                <div class="phone-result">第3名</div>
+                <div class="phone-comment">👑 姐就是姐！</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 3rem;">
+            <h2 class="bottom-cta-title">不服？来唱。</h2>
+            <p class="bottom-cta-sub">5秒出结果，姐的排名姐做主</p>
+            <a href="index.html" class="cta-btn">
+                立即挑战 <span class="arrow">→</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>浪姐声音挑战 · 纯属娱乐 · 结果仅供参考</p>
+        <p style="margin-top: 0.5rem;">不代表真实唱功评价 · 开心就好 🎤</p>
+    </div>
+
+    <script>
+        // Scroll fade-in animation
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>

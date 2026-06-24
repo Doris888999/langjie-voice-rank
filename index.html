@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>浪姐排名测试器</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a0533 0%, #2d1b69 30%, #0f0c29 70%, #1a0533 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+        .particle { position: absolute; width: 4px; height: 4px; background: rgba(255, 215, 0, 0.6); border-radius: 50%; animation: float 6s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100vh) translateX(50px); opacity: 0; } }
+
+        .container { position: relative; z-index: 1; text-align: center; padding: 2rem; max-width: 500px; width: 90%; }
+
+        h1 { font-size: 2.2rem; background: linear-gradient(135deg, #ffd700, #ff69b4, #ffd700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem; }
+        .subtitle { color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 2rem; }
+
+        /* Top bar buttons */
+        .top-bar { position: fixed; top: 1rem; right: 1rem; z-index: 50; display: flex; gap: 0.5rem; }
+        .top-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,215,0,0.4); background: rgba(255,215,0,0.1); color: #ffd700; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; backdrop-filter: blur(5px); }
+        .top-btn:hover { background: rgba(255,215,0,0.2); transform: scale(1.1); }
+        .top-btn .badge { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: #ff1493; border-radius: 50%; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; }
+
+        /* Challenger banner */
+        .challenger-banner { background: linear-gradient(90deg, rgba(255,105,180,0.2), rgba(255,215,0,0.2)); border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 0.8rem 1.2rem; margin-bottom: 1.5rem; display: none; }
+        .challenger-banner.show { display: block; }
+        .challenger-name { color: #ffd700; font-weight: 700; }
+
+        /* Mic button */
+        .mic-btn { width: 120px; height: 120px; border-radius: 50%; border: 3px solid rgba(255,215,0,0.5); background: radial-gradient(circle, rgba(255,105,180,0.3), rgba(45,27,105,0.8)); cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 2rem auto; transition: all 0.3s; }
+        .mic-btn:hover { transform: scale(1.05); border-color: #ffd700; box-shadow: 0 0 30px rgba(255,215,0,0.4); }
+        .mic-btn.recording { border-color: #ff4444; animation: pulse 1.5s ease-in-out infinite; box-shadow: 0 0 40px rgba(255,68,68,0.6); }
+        @keyframes pulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(255,68,68,0.4); } 50% { transform: scale(1.08); box-shadow: 0 0 50px rgba(255,68,68,0.8); } }
+        .mic-icon { font-size: 3rem; }
+        .instruction { color: rgba(255,255,255,0.8); font-size: 1rem; margin-top: 1rem; }
+
+        /* Visualizer */
+        .visualizer { display: flex; align-items: center; justify-content: center; height: 80px; gap: 3px; margin: 1.5rem 0; }
+        .bar { width: 4px; background: linear-gradient(to top, #ff69b4, #ffd700); border-radius: 2px; transition: height 0.1s ease; height: 5px; }
+
+        /* Progress */
+        .progress-container { display: none; margin: 1.5rem 0; }
+        .progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #ff69b4, #ffd700); border-radius: 3px; transition: width 0.1s linear; width: 0%; }
+        .progress-text { color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-top: 0.5rem; }
+
+        /* Result panel */
+        .result-panel { display: none; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.3); border-radius: 20px; padding: 2rem; margin-top: 2rem; backdrop-filter: blur(10px); animation: fadeIn 0.8s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .rank-number { font-size: 4rem; font-weight: 900; background: linear-gradient(135deg, #ffd700, #ff69b4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.2; }
+        .rank-label { font-size: 1rem; color: rgba(255,255,255,0.9); margin-bottom: 0.8rem; }
+
+        /* Persona card in result */
+        .persona-card { background: rgba(255,255,255,0.05); border-radius: 14px; padding: 1rem; margin: 1rem 0; border: 2px solid; position: relative; overflow: hidden; }
+        .persona-card.rarity-R { border-color: #4fc3f7; }
+        .persona-card.rarity-SR { border-color: #ab47bc; box-shadow: 0 0 15px rgba(171,71,188,0.3); }
+        .persona-card.rarity-SSR { border-color: #ffd700; box-shadow: 0 0 20px rgba(255,215,0,0.4); }
+        .persona-card.rarity-UR { border-image: linear-gradient(135deg, #ff0000, #ffd700, #00ff00, #0000ff, #ff00ff) 1; box-shadow: 0 0 25px rgba(255,0,255,0.4); }
+        .persona-rarity { position: absolute; top: 8px; right: 10px; font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 10px; }
+        .rarity-R .persona-rarity { background: #4fc3f7; color: #000; }
+        .rarity-SR .persona-rarity { background: #ab47bc; color: #fff; }
+        .rarity-SSR .persona-rarity { background: linear-gradient(135deg, #ffd700, #ffab00); color: #000; }
+        .rarity-UR .persona-rarity { background: linear-gradient(135deg, #ff0000, #ff00ff); color: #fff; }
+        .persona-emoji { font-size: 2rem; margin-bottom: 0.3rem; }
+        .persona-name { font-size: 1.1rem; font-weight: 700; color: #ffd700; }
+        .persona-desc { font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-top: 0.3rem; }
+        .persona-new { position: absolute; top: 8px; left: 10px; font-size: 0.65rem; background: #ff1493; color: #fff; padding: 2px 6px; border-radius: 8px; animation: blink 1s infinite; }
+        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .rank-comment { font-size: 0.9rem; color: rgba(255,255,255,0.7); line-height: 1.6; margin: 0.8rem 0; padding: 0.8rem; background: rgba(255,105,180,0.1); border-radius: 12px; border-left: 3px solid #ff69b4; }
+
+        /* Stats */
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 1rem; }
+        .stat-item { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 0.6rem; }
+        .stat-label { font-size: 0.7rem; color: rgba(255,255,255,0.5); }
+        .stat-value { font-size: 1rem; color: #ffd700; margin-top: 0.2rem; }
+
+        /* PK comparison */
+        .pk-section { display: none; margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,105,180,0.2); }
+        .pk-section.show { display: block; }
+        .pk-vs { display: flex; align-items: center; justify-content: center; gap: 1rem; }
+        .pk-player { text-align: center; flex: 1; }
+        .pk-player-name { font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 0.3rem; }
+        .pk-player-rank { font-size: 1.5rem; font-weight: 800; }
+        .pk-win { color: #ffd700; }
+        .pk-lose { color: rgba(255,255,255,0.4); }
+        .pk-vs-text { font-size: 1.2rem; font-weight: 900; color: #ff69b4; }
+        .pk-result-text { margin-top: 0.8rem; font-size: 0.9rem; color: rgba(255,255,255,0.8); }
+
+        /* Action buttons */
+        .action-btns { display: flex; gap: 0.8rem; margin-top: 1.2rem; flex-wrap: wrap; justify-content: center; }
+        .action-btn { padding: 0.7rem 1.2rem; border-radius: 30px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.3s; border: none; }
+        .btn-poster { background: linear-gradient(135deg, #ff69b4, #ff1493); color: #fff; box-shadow: 0 4px 15px rgba(255,105,180,0.3); }
+        .btn-challenge { background: linear-gradient(135deg, #ffd700, #ffab00); color: #000; box-shadow: 0 4px 15px rgba(255,215,0,0.3); }
+        .btn-retry { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,215,0,0.4); color: #ffd700; }
+        .action-btn:hover { transform: translateY(-2px); }
+
+        /* Overlay panels */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; display: none; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); overflow-y: auto; animation: fadeIn 0.3s ease; }
+        .overlay.show { display: block; }
+        .overlay-header { display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; background: rgba(10,0,20,0.9); z-index: 1; }
+        .overlay-title { font-size: 1.3rem; font-weight: 700; }
+        .overlay-close { width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); background: none; color: #fff; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .overlay-body { padding: 1.5rem; }
+
+        /* Collection grid */
+        .collection-progress { text-align: center; margin-bottom: 1.5rem; font-size: 0.9rem; color: rgba(255,255,255,0.6); }
+        .collection-progress span { color: #ffd700; font-weight: 700; font-size: 1.1rem; }
+        .collection-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+        .collect-card { border-radius: 14px; padding: 1rem 0.8rem; text-align: center; border: 2px solid; position: relative; transition: all 0.3s; min-height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .collect-card.locked { border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); filter: grayscale(1); }
+        .collect-card.locked .collect-emoji { filter: brightness(0) opacity(0.3); font-size: 2rem; }
+        .collect-card.locked .collect-name { color: rgba(255,255,255,0.3); }
+        .collect-card.unlocked { background: rgba(255,255,255,0.05); }
+        .collect-card.unlocked.rarity-R { border-color: #4fc3f7; }
+        .collect-card.unlocked.rarity-SR { border-color: #ab47bc; }
+        .collect-card.unlocked.rarity-SSR { border-color: #ffd700; }
+        .collect-card.unlocked.rarity-UR { border-image: linear-gradient(135deg, #ff0000, #ffd700, #00ff00, #0000ff) 1; }
+        .collect-emoji { font-size: 2rem; margin-bottom: 0.4rem; }
+        .collect-name { font-size: 0.8rem; font-weight: 600; }
+        .collect-rarity { font-size: 0.65rem; margin-top: 0.3rem; font-weight: 700; }
+        .collect-card .lock-icon { font-size: 1.5rem; opacity: 0.3; }
+        .collect-hint { font-size: 0.6rem; color: rgba(255,255,255,0.3); margin-top: 0.3rem; }
+
+        /* Leaderboard */
+        .lb-empty { text-align: center; padding: 3rem; color: rgba(255,255,255,0.4); }
+        .lb-list { display: flex; flex-direction: column; gap: 0.8rem; }
+        .lb-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); }
+        .lb-rank-num { font-size: 1.2rem; font-weight: 800; width: 30px; color: #ffd700; }
+        .lb-info { flex: 1; }
+        .lb-name { font-size: 0.95rem; font-weight: 600; }
+        .lb-detail { font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 0.2rem; }
+        .lb-score { font-size: 1.1rem; font-weight: 700; color: #ff69b4; }
+
+        /* Poster modal */
+        .poster-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 200; display: none; background: rgba(0,0,0,0.9); flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
+        .poster-modal.show { display: flex; }
+        .poster-modal canvas { max-width: 90%; max-height: 70vh; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .poster-hint { margin-top: 1rem; color: rgba(255,255,255,0.6); font-size: 0.85rem; }
+        .poster-close { margin-top: 1rem; padding: 0.7rem 2rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 30px; color: #fff; font-size: 0.9rem; cursor: pointer; }
+
+        /* Unlock animation */
+        .unlock-toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); z-index: 300; background: radial-gradient(ellipse, rgba(255,215,0,0.2), rgba(0,0,0,0.95)); border: 2px solid #ffd700; border-radius: 20px; padding: 2rem; text-align: center; transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; }
+        .unlock-toast.show { transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+        .unlock-toast-emoji { font-size: 4rem; animation: bounce 0.6s ease; }
+        @keyframes bounce { 0% { transform: scale(0); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        .unlock-toast-text { margin-top: 0.8rem; font-size: 1.2rem; font-weight: 700; color: #ffd700; }
+        .unlock-toast-sub { margin-top: 0.4rem; font-size: 0.85rem; color: rgba(255,255,255,0.6); }
+
+        .crown { font-size: 1.5rem; margin-bottom: 0.3rem; }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+
+    <!-- Top bar -->
+    <div class="top-bar">
+        <button class="top-btn" id="collectionBtn" style="position:relative;">
+            <span>📖</span>
+            <span class="badge" id="collectionBadge">0</span>
+        </button>
+        <button class="top-btn" id="leaderboardBtn">🏆</button>
+    </div>
+
+    <!-- Main container -->
+    <div class="container">
+        <h1>浪姐排名测试器</h1>
+        <p class="subtitle">唱一段，测测你在浪姐能排第几名</p>
+
+        <div class="challenger-banner" id="challengerBanner">
+            <span class="challenger-name" id="challengerName"></span> 向你发起挑战！<br>
+            <span style="font-size:0.8rem;color:rgba(255,255,255,0.5);">TA的排名：第<span id="challengerRank"></span>名</span>
+        </div>
+
+        <div class="mic-btn" id="micBtn"><span class="mic-icon">🎤</span></div>
+        <p class="instruction" id="instruction">点击麦克风，开始唱歌（录制5秒）</p>
+        <div class="visualizer" id="visualizer"></div>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <p class="progress-text" id="progressText">正在录制...</p>
+        </div>
+
+        <div class="result-panel" id="resultPanel">
+            <div class="crown" id="crownEmoji"></div>
+            <div class="rank-number" id="rankNumber"></div>
+            <div class="rank-label" id="rankLabel"></div>
+            <div class="persona-card" id="personaCard">
+                <span class="persona-new" id="personaNew" style="display:none;">NEW!</span>
+                <span class="persona-rarity" id="personaRarity"></span>
+                <div class="persona-emoji" id="personaEmoji"></div>
+                <div class="persona-name" id="personaName"></div>
+                <div class="persona-desc" id="personaDesc"></div>
+            </div>
+            <div class="rank-comment" id="rankComment"></div>
+            <div class="stats" id="stats"></div>
+            <div class="pk-section" id="pkSection">
+                <div class="pk-vs">
+                    <div class="pk-player"><div class="pk-player-name">你</div><div class="pk-player-rank" id="pkMyRank"></div></div>
+                    <div class="pk-vs-text">VS</div>
+                    <div class="pk-player"><div class="pk-player-name" id="pkOpponentName"></div><div class="pk-player-rank" id="pkOpponentRank"></div></div>
+                </div>
+                <div class="pk-result-text" id="pkResultText"></div>
+            </div>
+            <div class="action-btns">
+                <button class="action-btn btn-poster" id="posterBtn">📸 生成海报</button>
+                <button class="action-btn btn-challenge" id="challengeBtn">⚔️ 挑战好友</button>
+                <button class="action-btn btn-retry" id="retryBtn">🔄 再来一次</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collection overlay -->
+    <div class="overlay" id="collectionOverlay">
+        <div class="overlay-header">
+            <span class="overlay-title">📖 歌手人设图鉴</span>
+            <button class="overlay-close" id="collectionClose">✕</button>
+        </div>
+        <div class="overlay-body">
+            <div class="collection-progress">已收集 <span id="collectCount">0</span> / 12</div>
+            <div class="collection-grid" id="collectionGrid"></div>
+        </div>
+    </div>
+
+    <!-- Leaderboard overlay -->
+    <div class="overlay" id="leaderboardOverlay">
+        <div class="overlay-header">
+            <span class="overlay-title">🏆 排行榜</span>
+            <button class="overlay-close" id="leaderboardClose">✕</button>
+        </div>
+        <div class="overlay-body">
+            <div class="lb-list" id="lbList"></div>
+        </div>
+    </div>
+
+    <!-- Poster modal -->
+    <div class="poster-modal" id="posterModal">
+        <canvas id="posterCanvas" width="750" height="1334"></canvas>
+        <p class="poster-hint">长按图片保存到相册，分享给好友</p>
+        <button class="poster-close" id="posterClose">关闭</button>
+    </div>
+
+    <!-- Unlock toast -->
+    <div class="unlock-toast" id="unlockToast">
+        <div class="unlock-toast-emoji" id="unlockEmoji"></div>
+        <div class="unlock-toast-text" id="unlockText"></div>
+        <div class="unlock-toast-sub" id="unlockSub"></div>
+    </div>
+
+    <script>
+    // ===== PERSONA DEFINITIONS =====
+    const PERSONAS = [
+        { id: 'yangsang', name: '烟嗓御姐', emoji: '🖤', rarity: 'SR', desc: '低沉磁性，一开口就是故事', hint: '音量高+音高低+稳定' },
+        { id: 'tianmei', name: '甜美少女', emoji: '🌸', rarity: 'R', desc: '甜而不腻，耳朵怀孕了', hint: '音高高+表现力中等' },
+        { id: 'yaogun', name: '摇滚女王', emoji: '🔥', rarity: 'SSR', desc: '声嘶力竭，灵魂在燃烧', hint: '音量极高+表现力极高' },
+        { id: 'linghun', name: '灵魂歌姬', emoji: '💎', rarity: 'SSR', desc: '声音里有宇宙，每个音符都是星辰', hint: '稳定性极高+音高变化大' },
+        { id: 'minyao', name: '民谣才女', emoji: '🍃', rarity: 'R', desc: '像清晨第一缕阳光，温柔又治愈', hint: '音量低+稳定性高' },
+        { id: 'dianyin', name: '电音女神', emoji: '⚡', rarity: 'SR', desc: '声音自带auto-tune，未来感拉满', hint: '音高变化极大+表现力高' },
+        { id: 'shuochang', name: '说唱Queen', emoji: '👑', rarity: 'SR', desc: 'flow如水，每个beat都是她的', hint: '节奏密集+音高变化快' },
+        { id: 'tianhou', name: '华语天后', emoji: '🌟', rarity: 'SSR', desc: '教科书级唱功，不接受反驳', hint: '四维均衡且都高' },
+        { id: 'zongyi', name: '综艺担当', emoji: '😂', rarity: 'R', desc: '唱功不够笑声来凑，快乐感染全场', hint: '四维波动+有趣' },
+        { id: 'qingleng', name: '清冷仙女', emoji: '❄️', rarity: 'SR', desc: '不食人间烟火，声音自带仙气', hint: '音高高+音量低+稳定' },
+        { id: 'baofa', name: '爆发力选手', emoji: '💥', rarity: 'R', desc: '平时温柔，副歌炸裂，反差拉满', hint: '音量起伏极大' },
+        { id: 'yincang', name: '隐藏Boss', emoji: '🐉', rarity: 'UR', desc: '传说中的存在，实力深不可测', hint: '总分极高+多次测试' },
+    ];
+
+    // ===== CONFIG =====
+    const RECORD_DURATION = 5000;
+    const NUM_BARS = 32;
+    const STORAGE_KEY = 'langjie_collection';
+    const LB_KEY = 'langjie_leaderboard';
+    const PLAY_COUNT_KEY = 'langjie_play_count';
+
+    // ===== STATE =====
+    let audioContext, analyser, mediaStream, isRecording = false, animationId;
+    let pitchHistory = [], volumeHistory = [], frequencyHistory = [];
+    let currentResult = null;
+
+    // ===== DOM =====
+    const micBtn = document.getElementById('micBtn');
+    const instruction = document.getElementById('instruction');
+    const visualizer = document.getElementById('visualizer');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const resultPanel = document.getElementById('resultPanel');
+
+    // Create visualizer bars
+    for (let i = 0; i < NUM_BARS; i++) { const b = document.createElement('div'); b.className = 'bar'; visualizer.appendChild(b); }
+
+    // Create particles
+    const particlesContainer = document.getElementById('particles');
+    for (let i = 0; i < 25; i++) { const p = document.createElement('div'); p.className = 'particle'; p.style.left = Math.random()*100+'%'; p.style.animationDelay = Math.random()*6+'s'; p.style.animationDuration = (4+Math.random()*4)+'s'; particlesContainer.appendChild(p); }
+
+    // ===== CHALLENGER MODE =====
+    const urlParams = new URLSearchParams(window.location.search);
+    const challengerName = urlParams.get('challenger');
+    const challengerRank = urlParams.get('rank');
+    const challengerPersona = urlParams.get('persona');
+    if (challengerName) {
+        document.getElementById('challengerBanner').classList.add('show');
+        document.getElementById('challengerName').textContent = challengerName;
+        document.getElementById('challengerRank').textContent = challengerRank || '?';
+    }
+
+    // ===== EVENTS =====
+    micBtn.addEventListener('click', startRecording);
+    document.getElementById('retryBtn').addEventListener('click', reset);
+    document.getElementById('posterBtn').addEventListener('click', generatePoster);
+    document.getElementById('challengeBtn').addEventListener('click', shareChallenge);
+    document.getElementById('collectionBtn').addEventListener('click', () => { renderCollection(); document.getElementById('collectionOverlay').classList.add('show'); });
+    document.getElementById('collectionClose').addEventListener('click', () => document.getElementById('collectionOverlay').classList.remove('show'));
+    document.getElementById('leaderboardBtn').addEventListener('click', () => { renderLeaderboard(); document.getElementById('leaderboardOverlay').classList.add('show'); });
+    document.getElementById('leaderboardClose').addEventListener('click', () => document.getElementById('leaderboardOverlay').classList.remove('show'));
+    document.getElementById('posterClose').addEventListener('click', () => document.getElementById('posterModal').classList.remove('show'));
+
+    updateCollectionBadge();
+
+    // Startup check: warn if opened via file://
+    if (window.location.protocol === 'file:') {
+        instruction.innerHTML = '⚠️ 请用HTTP服务打开此页面<br><span style="font-size:0.75rem;color:rgba(255,255,255,0.5);">终端执行: python3 -m http.server 8080<br>然后浏览器访问 http://localhost:8080</span>';
+        instruction.style.color = '#ff6b6b';
+    }
+
+    // ===== RECORDING =====
+    async function startRecording() {
+        if (isRecording) return;
+
+        // Check file:// protocol
+        if (window.location.protocol === 'file:') {
+            instruction.textContent = '⚠️ 请用HTTP服务器打开此页面（直接打开文件无法使用麦克风）';
+            instruction.style.color = '#ff6b6b';
+            return;
+        }
+
+        // Check if getUserMedia is available
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            instruction.textContent = '⚠️ 当前浏览器不支持麦克风，请用Chrome/Safari打开';
+            instruction.style.color = '#ff6b6b';
+            return;
+        }
+
+        try { mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch(e) {
+            instruction.textContent = '⚠️ 麦克风权限被拒绝，请在浏览器设置中允许后刷新重试';
+            instruction.style.color = '#ff6b6b';
+            return;
+        }
+
+        isRecording = true; pitchHistory = []; volumeHistory = []; frequencyHistory = [];
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaStreamSource(mediaStream);
+        analyser = audioContext.createAnalyser(); analyser.fftSize = 2048;
+        source.connect(analyser);
+
+        micBtn.classList.add('recording');
+        instruction.textContent = '正在聆听你的歌声...';
+        progressContainer.style.display = 'block';
+        resultPanel.style.display = 'none';
+
+        const startTime = Date.now();
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        const timeDataArray = new Float32Array(analyser.fftSize);
+        const bars = visualizer.querySelectorAll('.bar');
+
+        function animate() {
+            if (!isRecording) return;
+            const elapsed = Date.now() - startTime;
+            progressFill.style.width = Math.min(elapsed/RECORD_DURATION*100,100)+'%';
+            progressText.textContent = `录制中... ${Math.ceil((RECORD_DURATION-elapsed)/1000)}秒`;
+
+            analyser.getByteFrequencyData(dataArray);
+            analyser.getFloatTimeDomainData(timeDataArray);
+
+            const sliceWidth = Math.floor(bufferLength / NUM_BARS);
+            for (let i = 0; i < NUM_BARS; i++) { let sum = 0; for (let j = 0; j < sliceWidth; j++) sum += dataArray[i*sliceWidth+j]; bars[i].style.height = Math.max(5,(sum/sliceWidth/255)*70)+'px'; }
+
+            let rms = 0; for (let i = 0; i < timeDataArray.length; i++) rms += timeDataArray[i]*timeDataArray[i];
+            rms = Math.sqrt(rms/timeDataArray.length); volumeHistory.push(rms);
+
+            const pitch = detectPitch(timeDataArray, audioContext.sampleRate);
+            if (pitch > 0) pitchHistory.push(pitch);
+            frequencyHistory.push(Array.from(dataArray.slice(0,64)));
+
+            if (elapsed >= RECORD_DURATION) { stopRecording(); return; }
+            animationId = requestAnimationFrame(animate);
+        }
+        animate();
+    }
+
+    function detectPitch(buffer, sampleRate) {
+        const SIZE = buffer.length; let bestOffset = -1, bestCorrelation = 0, foundGood = false;
+        let rms = 0; for (let i = 0; i < SIZE; i++) rms += buffer[i]*buffer[i];
+        if (Math.sqrt(rms/SIZE) < 0.01) return -1;
+        for (let offset = 50; offset < SIZE/2; offset++) {
+            let corr = 0; for (let i = 0; i < SIZE/2; i++) corr += Math.abs(buffer[i]-buffer[i+offset]);
+            corr = 1-(corr/(SIZE/2));
+            if (corr > 0.9 && corr > bestCorrelation) { bestCorrelation = corr; bestOffset = offset; foundGood = true; }
+            else if (foundGood && corr < 0.8) break;
+        }
+        return bestOffset === -1 ? -1 : sampleRate/bestOffset;
+    }
+
+    function stopRecording() {
+        isRecording = false; cancelAnimationFrame(animationId);
+        if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
+        if (audioContext) audioContext.close();
+        micBtn.classList.remove('recording'); progressContainer.style.display = 'none';
+        visualizer.querySelectorAll('.bar').forEach(b => b.style.height = '5px');
+        analyzeAndShowResult();
+    }
+
+    // ===== ANALYSIS =====
+    function analyzeAndShowResult() {
+        const avgVolume = volumeHistory.length > 0 ? volumeHistory.reduce((a,b)=>a+b,0)/volumeHistory.length : 0;
+        const maxVolume = volumeHistory.length > 0 ? Math.max(...volumeHistory) : 0;
+        const avgPitch = pitchHistory.length > 0 ? pitchHistory.reduce((a,b)=>a+b,0)/pitchHistory.length : 0;
+        const pitchRange = pitchHistory.length > 2 ? Math.max(...pitchHistory)-Math.min(...pitchHistory) : 0;
+        let pitchStdDev = 0;
+        if (pitchHistory.length > 2) { const sq = pitchHistory.map(p=>(p-avgPitch)**2); pitchStdDev = Math.sqrt(sq.reduce((a,b)=>a+b,0)/sq.length); }
+        const volumeRange = maxVolume - Math.min(...(volumeHistory.filter(v=>v>0.01).length?volumeHistory.filter(v=>v>0.01):[0]));
+
+        const volumeScore = Math.min(100, avgVolume*500);
+        const pitchScore = Math.min(100, pitchHistory.length > 5 ? 60+Math.min(40, pitchRange/10) : 20);
+        const stabilityScore = pitchStdDev > 0 ? Math.max(0, 100-pitchStdDev/3) : 30;
+        const dynamicsScore = Math.min(100, volumeRange*300);
+        const overallScore = volumeScore*0.25 + pitchScore*0.3 + stabilityScore*0.25 + dynamicsScore*0.2;
+
+        let rank;
+        if (overallScore >= 85) rank = Math.floor(Math.random()*3)+1;
+        else if (overallScore >= 70) rank = Math.floor(Math.random()*4)+4;
+        else if (overallScore >= 55) rank = Math.floor(Math.random()*5)+8;
+        else if (overallScore >= 40) rank = Math.floor(Math.random()*5)+13;
+        else if (overallScore >= 25) rank = Math.floor(Math.random()*5)+18;
+        else rank = Math.floor(Math.random()*7)+23;
+
+        // Determine persona
+        const persona = determinePersona(volumeScore, pitchScore, stabilityScore, dynamicsScore, overallScore);
+        const isNewUnlock = unlockPersona(persona.id);
+
+        // Increment play count
+        const playCount = parseInt(localStorage.getItem(PLAY_COUNT_KEY)||'0') + 1;
+        localStorage.setItem(PLAY_COUNT_KEY, playCount);
+
+        // Save to leaderboard
+        saveToLeaderboard(rank, persona);
+
+        currentResult = { rank, persona, volumeScore, pitchScore, stabilityScore, dynamicsScore, overallScore, isNewUnlock };
+
+        // Render result
+        const comments = {
+            top: ['姐就是姐！这唱功直接C位出道！','天赐的嗓音，观众疯狂打call！','这vocal一开口就赢了！'],
+            high: ['实力唱将！绝对是舞台焦点','唱功扎实，大姐大范儿','vocal稳定性不错，未来可期'],
+            mid: ['中游选手，有潜力待打磨','基础不错，多练说不定能逆袭','稳扎稳打型，需要突破'],
+            low: ['需要加油了姐！态度分满','可能唱歌不是强项... 试试舞蹈？','排名靠后，但真诚是必杀技'],
+            bottom: ['要不咱们试试综艺路线？','勇气可嘉！至少你敢上台','快乐最重要！综艺感也是天赋']
+        };
+        let pool, crown;
+        if (rank<=3) { pool=comments.top; crown='👑'; }
+        else if (rank<=7) { pool=comments.high; crown='✨'; }
+        else if (rank<=15) { pool=comments.mid; crown='🎵'; }
+        else if (rank<=22) { pool=comments.low; crown='💪'; }
+        else { pool=comments.bottom; crown='🫣'; }
+
+        document.getElementById('crownEmoji').textContent = crown;
+        document.getElementById('rankNumber').textContent = `第${rank}名`;
+        document.getElementById('rankLabel').textContent = '/ 30位浪姐';
+        document.getElementById('rankComment').textContent = pool[Math.floor(Math.random()*pool.length)];
+
+        // Persona card
+        const card = document.getElementById('personaCard');
+        card.className = 'persona-card rarity-'+persona.rarity;
+        document.getElementById('personaRarity').textContent = persona.rarity;
+        document.getElementById('personaEmoji').textContent = persona.emoji;
+        document.getElementById('personaName').textContent = persona.name;
+        document.getElementById('personaDesc').textContent = persona.desc;
+        document.getElementById('personaNew').style.display = isNewUnlock ? 'block' : 'none';
+
+        // Stats
+        document.getElementById('stats').innerHTML = `
+            <div class="stat-item"><div class="stat-label">音量表现</div><div class="stat-value">${Math.round(volumeScore)}分</div></div>
+            <div class="stat-item"><div class="stat-label">音高变化</div><div class="stat-value">${Math.round(pitchScore)}分</div></div>
+            <div class="stat-item"><div class="stat-label">稳定性</div><div class="stat-value">${Math.round(stabilityScore)}分</div></div>
+            <div class="stat-item"><div class="stat-label">表现力</div><div class="stat-value">${Math.round(dynamicsScore)}分</div></div>`;
+
+        // PK section
+        if (challengerName) {
+            document.getElementById('pkSection').classList.add('show');
+            const myR = document.getElementById('pkMyRank');
+            const opR = document.getElementById('pkOpponentRank');
+            myR.textContent = '第'+rank+'名';
+            opR.textContent = '第'+challengerRank+'名';
+            document.getElementById('pkOpponentName').textContent = challengerName;
+            const iWin = rank < parseInt(challengerRank);
+            myR.className = 'pk-player-rank '+(iWin?'pk-win':'pk-lose');
+            opR.className = 'pk-player-rank '+(iWin?'pk-lose':'pk-win');
+            document.getElementById('pkResultText').textContent = iWin ? '🎉 你赢了！实力碾压！' : rank==parseInt(challengerRank) ? '🤝 平手！势均力敌！' : '😤 惜败！再来一次！';
+        }
+
+        resultPanel.style.display = 'block';
+        instruction.textContent = '测试完成！';
+        updateCollectionBadge();
+
+        if (isNewUnlock) {
+            setTimeout(() => showUnlockToast(persona), 800);
+        }
+    }
+
+    // ===== PERSONA DETERMINATION =====
+    function determinePersona(vol, pitch, stab, dyn, overall) {
+        const playCount = parseInt(localStorage.getItem(PLAY_COUNT_KEY)||'0');
+
+        if (overall >= 85 && playCount >= 3) return PERSONAS[11]; // 隐藏Boss
+        if (vol >= 75 && dyn >= 75) return PERSONAS[2]; // 摇滚女王
+        if (stab >= 80 && pitch >= 70) return PERSONAS[3]; // 灵魂歌姬
+        if (vol >= 60 && pitch >= 60 && stab >= 60 && dyn >= 60) return PERSONAS[7]; // 华语天后
+        if (vol >= 65 && pitch <= 40 && stab >= 60) return PERSONAS[0]; // 烟嗓御姐
+        if (pitch >= 70 && vol <= 40 && stab >= 60) return PERSONAS[9]; // 清冷仙女
+        if (pitch >= 75 && dyn >= 60) return PERSONAS[5]; // 电音女神
+        if (pitch >= 65 && pitchHistory.length > 20) return PERSONAS[6]; // 说唱Queen
+        if (dyn >= 70 && vol <= 50) return PERSONAS[10]; // 爆发力选手
+        if (pitch >= 60 && dyn >= 40 && dyn <= 60) return PERSONAS[1]; // 甜美少女
+        if (vol <= 45 && stab >= 55) return PERSONAS[4]; // 民谣才女
+        return PERSONAS[8]; // 综艺担当
+    }
+
+    // ===== COLLECTION =====
+    function getCollection() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'); } catch { return {}; }
+    }
+
+    function unlockPersona(id) {
+        const coll = getCollection();
+        if (coll[id]) return false;
+        coll[id] = { unlockedAt: Date.now() };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(coll));
+        return true;
+    }
+
+    function updateCollectionBadge() {
+        const count = Object.keys(getCollection()).length;
+        document.getElementById('collectionBadge').textContent = count;
+    }
+
+    function renderCollection() {
+        const coll = getCollection();
+        const grid = document.getElementById('collectionGrid');
+        document.getElementById('collectCount').textContent = Object.keys(coll).length;
+        grid.innerHTML = PERSONAS.map(p => {
+            const unlocked = !!coll[p.id];
+            return `<div class="collect-card ${unlocked?'unlocked':'locked'} ${unlocked?'rarity-'+p.rarity:''}">
+                <div class="collect-emoji">${unlocked?p.emoji:'🔒'}</div>
+                <div class="collect-name">${unlocked?p.name:'???'}</div>
+                ${unlocked?`<div class="collect-rarity" style="color:${p.rarity==='R'?'#4fc3f7':p.rarity==='SR'?'#ab47bc':p.rarity==='SSR'?'#ffd700':'#ff00ff'}">${p.rarity}</div>`:`<div class="collect-hint">${p.hint}</div>`}
+            </div>`;
+        }).join('');
+    }
+
+    function showUnlockToast(persona) {
+        const toast = document.getElementById('unlockToast');
+        document.getElementById('unlockEmoji').textContent = persona.emoji;
+        document.getElementById('unlockText').textContent = `解锁：${persona.name}`;
+        document.getElementById('unlockSub').textContent = persona.desc;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // ===== LEADERBOARD =====
+    function saveToLeaderboard(rank, persona) {
+        const lb = JSON.parse(localStorage.getItem(LB_KEY)||'[]');
+        const name = urlParams.get('name') || '我';
+        lb.unshift({ name, rank, persona: persona.name, personaEmoji: persona.emoji, time: Date.now() });
+        if (lb.length > 20) lb.length = 20;
+        localStorage.setItem(LB_KEY, JSON.stringify(lb));
+    }
+
+    function renderLeaderboard() {
+        const lb = JSON.parse(localStorage.getItem(LB_KEY)||'[]');
+        const list = document.getElementById('lbList');
+        if (!lb.length) { list.innerHTML = '<div class="lb-empty">还没有记录<br>完成测试后自动上榜</div>'; return; }
+        const sorted = [...lb].sort((a,b) => a.rank-b.rank);
+        list.innerHTML = sorted.map((item,i) => {
+            const timeStr = new Date(item.time).toLocaleDateString('zh-CN',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+            return `<div class="lb-item">
+                <div class="lb-rank-num">${i+1}</div>
+                <div class="lb-info"><div class="lb-name">${item.personaEmoji} ${item.name}</div><div class="lb-detail">${item.persona} · ${timeStr}</div></div>
+                <div class="lb-score">第${item.rank}名</div>
+            </div>`;
+        }).join('');
+    }
+
+    // ===== SHARE CHALLENGE =====
+    function shareChallenge() {
+        if (!currentResult) return;
+        const baseUrl = window.location.origin + window.location.pathname;
+        const params = new URLSearchParams({ challenger: '我', rank: currentResult.rank, persona: currentResult.persona.name });
+        const url = baseUrl + '?' + params.toString();
+        const text = `我在「浪姐声音挑战」中获得了第${currentResult.rank}名（${currentResult.persona.name}），你能超过我吗？👇\n${url}`;
+
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(() => {
+                instruction.textContent = '✅ 挑战链接已复制！发给好友吧';
+            });
+        } else {
+            const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+            instruction.textContent = '✅ 挑战链接已复制！发给好友吧';
+        }
+    }
+
+    // ===== POSTER GENERATION =====
+    function generatePoster() {
+        if (!currentResult) return;
+        const canvas = document.getElementById('posterCanvas');
+        const ctx = canvas.getContext('2d');
+        const W = 750, H = 1334;
+
+        // Background
+        const grad = ctx.createLinearGradient(0,0,W,H);
+        grad.addColorStop(0,'#1a0533'); grad.addColorStop(0.5,'#2d1b69'); grad.addColorStop(1,'#0f0c29');
+        ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
+
+        // Decorative circles
+        ctx.beginPath(); ctx.arc(600,200,150,0,Math.PI*2); ctx.fillStyle='rgba(255,105,180,0.06)'; ctx.fill();
+        ctx.beginPath(); ctx.arc(100,1000,200,0,Math.PI*2); ctx.fillStyle='rgba(138,43,226,0.05)'; ctx.fill();
+
+        // Particles
+        for (let i=0;i<40;i++) { ctx.beginPath(); ctx.arc(Math.random()*W,Math.random()*H,Math.random()*2+1,0,Math.PI*2); ctx.fillStyle=`rgba(255,215,0,${Math.random()*0.3+0.1})`; ctx.fill(); }
+
+        // Title
+        ctx.textAlign='center'; ctx.fillStyle='#ffd700'; ctx.font='bold 36px PingFang SC, sans-serif';
+        ctx.fillText('浪姐声音挑战',W/2,80);
+
+        // Rank
+        ctx.font='bold 120px PingFang SC, sans-serif';
+        const rankGrad = ctx.createLinearGradient(W/2-100,150,W/2+100,350);
+        rankGrad.addColorStop(0,'#ffd700'); rankGrad.addColorStop(1,'#ff69b4');
+        ctx.fillStyle=rankGrad;
+        ctx.fillText(`第${currentResult.rank}名`,W/2,280);
+        ctx.font='24px PingFang SC, sans-serif'; ctx.fillStyle='rgba(255,255,255,0.6)';
+        ctx.fillText('/ 30位浪姐',W/2,320);
+
+        // Persona card area
+        const cardY = 370;
+        ctx.fillStyle = 'rgba(255,255,255,0.05)';
+        roundRect(ctx, 100, cardY, W-200, 160, 20); ctx.fill();
+        ctx.strokeStyle = currentResult.persona.rarity==='R'?'#4fc3f7':currentResult.persona.rarity==='SR'?'#ab47bc':currentResult.persona.rarity==='SSR'?'#ffd700':'#ff00ff';
+        ctx.lineWidth = 2; roundRect(ctx, 100, cardY, W-200, 160, 20); ctx.stroke();
+
+        ctx.font='48px sans-serif'; ctx.fillStyle='#fff';
+        ctx.fillText(currentResult.persona.emoji, W/2, cardY+60);
+        ctx.font='bold 28px PingFang SC, sans-serif'; ctx.fillStyle='#ffd700';
+        ctx.fillText(currentResult.persona.name, W/2, cardY+100);
+        ctx.font='18px PingFang SC, sans-serif'; ctx.fillStyle='rgba(255,255,255,0.6)';
+        ctx.fillText(currentResult.persona.desc, W/2, cardY+135);
+
+        // Rarity badge
+        ctx.font='bold 16px PingFang SC, sans-serif';
+        ctx.fillStyle=ctx.strokeStyle;
+        ctx.fillText(currentResult.persona.rarity, W-140, cardY+30);
+
+        // Radar chart
+        const cx=W/2, cy=700, r=120;
+        const scores = [currentResult.volumeScore, currentResult.pitchScore, currentResult.stabilityScore, currentResult.dynamicsScore];
+        const labels = ['音量','音高','稳定','表现'];
+        const angles = scores.map((_,i) => (Math.PI*2*i/4) - Math.PI/2);
+
+        // Grid
+        for (let ring=1;ring<=4;ring++) {
+            ctx.beginPath();
+            for (let i=0;i<4;i++) { const a=angles[i]; const rr=r*ring/4; ctx.lineTo(cx+Math.cos(a)*rr, cy+Math.sin(a)*rr); }
+            ctx.closePath(); ctx.strokeStyle='rgba(255,255,255,0.1)'; ctx.lineWidth=1; ctx.stroke();
+        }
+
+        // Axes
+        for (let i=0;i<4;i++) { ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(angles[i])*r, cy+Math.sin(angles[i])*r); ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.stroke(); }
+
+        // Data polygon
+        ctx.beginPath();
+        for (let i=0;i<4;i++) { const a=angles[i]; const rr=r*(scores[i]/100); ctx.lineTo(cx+Math.cos(a)*rr, cy+Math.sin(a)*rr); }
+        ctx.closePath(); ctx.fillStyle='rgba(255,105,180,0.3)'; ctx.fill();
+        ctx.strokeStyle='#ff69b4'; ctx.lineWidth=2; ctx.stroke();
+
+        // Labels
+        ctx.font='16px PingFang SC, sans-serif'; ctx.fillStyle='rgba(255,255,255,0.7)';
+        for (let i=0;i<4;i++) { const a=angles[i]; ctx.fillText(labels[i]+' '+Math.round(scores[i]), cx+Math.cos(a)*(r+30), cy+Math.sin(a)*(r+30)+5); }
+
+        // Comment
+        ctx.font='20px PingFang SC, sans-serif'; ctx.fillStyle='rgba(255,255,255,0.8)';
+        ctx.fillText(document.getElementById('rankComment').textContent.slice(0,20), W/2, 870);
+
+        // QR code area
+        const qrY = 940;
+        drawQRCode(ctx, W/2-60, qrY, 120);
+        ctx.font='16px PingFang SC, sans-serif'; ctx.fillStyle='rgba(255,255,255,0.5)';
+        ctx.fillText('扫码挑战我', W/2, qrY+150);
+
+        // Challenge info
+        ctx.font='bold 22px PingFang SC, sans-serif'; ctx.fillStyle='#ffd700';
+        ctx.fillText('我是'+currentResult.persona.name+'，你呢？', W/2, qrY+190);
+
+        // Footer
+        ctx.font='14px PingFang SC, sans-serif'; ctx.fillStyle='rgba(255,255,255,0.3)';
+        ctx.fillText('浪姐声音挑战 · 纯属娱乐', W/2, H-40);
+
+        document.getElementById('posterModal').classList.add('show');
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+        ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+        ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+        ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+    }
+
+    // Simple QR-like pattern (visual placeholder - generates a decorative QR-style pattern)
+    function drawQRCode(ctx, x, y, size) {
+        const cellSize = size/21;
+        ctx.fillStyle='#fff';
+        ctx.fillRect(x,y,size,size);
+        ctx.fillStyle='#000';
+
+        // Position detection patterns (corners)
+        drawFinderPattern(ctx, x, y, cellSize);
+        drawFinderPattern(ctx, x+cellSize*14, y, cellSize);
+        drawFinderPattern(ctx, x, y+cellSize*14, cellSize);
+
+        // Generate pseudo-random data modules based on current URL
+        const url = window.location.href;
+        let seed = 0; for (let i=0;i<url.length;i++) seed = ((seed<<5)-seed)+url.charCodeAt(i);
+        for (let r=0;r<21;r++) for (let c=0;c<21;c++) {
+            if (isFinderArea(r,c)) continue;
+            seed = (seed*1103515245+12345)&0x7fffffff;
+            if (seed%3===0) ctx.fillRect(x+c*cellSize, y+r*cellSize, cellSize, cellSize);
+        }
+    }
+
+    function drawFinderPattern(ctx, x, y, cs) {
+        ctx.fillRect(x,y,cs*7,cs*7);
+        ctx.fillStyle='#fff'; ctx.fillRect(x+cs,y+cs,cs*5,cs*5);
+        ctx.fillStyle='#000'; ctx.fillRect(x+cs*2,y+cs*2,cs*3,cs*3);
+    }
+
+    function isFinderArea(r,c) { return (r<8&&c<8)||(r<8&&c>12)||(r>12&&c<8); }
+
+    // ===== RESET =====
+    function reset() {
+        resultPanel.style.display = 'none';
+        document.getElementById('pkSection').classList.remove('show');
+        instruction.textContent = '点击麦克风，开始唱歌（录制5秒）';
+        progressFill.style.width = '0%';
+    }
+    </script>
+</body>
+</html>
