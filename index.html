@@ -523,19 +523,44 @@
     // ===== PERSONA DETERMINATION =====
     function determinePersona(vol, pitch, stab, dyn, overall) {
         const playCount = parseInt(localStorage.getItem(PLAY_COUNT_KEY)||'0');
+        const coll = getCollection();
 
-        if (overall >= 85 && playCount >= 3) return PERSONAS[11]; // 隐藏Boss
-        if (vol >= 75 && dyn >= 75) return PERSONAS[2]; // 摇滚女王
-        if (stab >= 80 && pitch >= 70) return PERSONAS[3]; // 灵魂歌姬
-        if (vol >= 60 && pitch >= 60 && stab >= 60 && dyn >= 60) return PERSONAS[7]; // 华语天后
-        if (vol >= 65 && pitch <= 40 && stab >= 60) return PERSONAS[0]; // 烟嗓御姐
-        if (pitch >= 70 && vol <= 40 && stab >= 60) return PERSONAS[9]; // 清冷仙女
-        if (pitch >= 75 && dyn >= 60) return PERSONAS[5]; // 电音女神
-        if (pitch >= 65 && pitchHistory.length > 20) return PERSONAS[6]; // 说唱Queen
-        if (dyn >= 70 && vol <= 50) return PERSONAS[10]; // 爆发力选手
-        if (pitch >= 60 && dyn >= 40 && dyn <= 60) return PERSONAS[1]; // 甜美少女
-        if (vol <= 45 && stab >= 55) return PERSONAS[4]; // 民谣才女
-        return PERSONAS[8]; // 综艺担当
+        // Build candidate list with weighted scores
+        const candidates = [];
+
+        // Primary match based on voice features
+        if (overall >= 85 && playCount >= 3) candidates.push({ p: PERSONAS[11], w: 50 }); // 隐藏Boss
+        if (vol >= 70 && dyn >= 70) candidates.push({ p: PERSONAS[2], w: 40 }); // 摇滚女王
+        if (stab >= 75 && pitch >= 65) candidates.push({ p: PERSONAS[3], w: 40 }); // 灵魂歌姬
+        if (vol >= 55 && pitch >= 55 && stab >= 55 && dyn >= 55) candidates.push({ p: PERSONAS[7], w: 35 }); // 华语天后
+        if (vol >= 60 && pitch <= 45 && stab >= 55) candidates.push({ p: PERSONAS[0], w: 35 }); // 烟嗓御姐
+        if (pitch >= 65 && vol <= 45 && stab >= 55) candidates.push({ p: PERSONAS[9], w: 35 }); // 清冷仙女
+        if (pitch >= 65 && dyn >= 55) candidates.push({ p: PERSONAS[5], w: 30 }); // 电音女神
+        if (pitch >= 55 && pitchHistory.length > 15) candidates.push({ p: PERSONAS[6], w: 30 }); // 说唱Queen
+        if (dyn >= 60 && vol <= 55) candidates.push({ p: PERSONAS[10], w: 30 }); // 爆发力选手
+        if (pitch >= 50 && dyn >= 30 && dyn <= 65) candidates.push({ p: PERSONAS[1], w: 25 }); // 甜美少女
+        if (vol <= 50 && stab >= 45) candidates.push({ p: PERSONAS[4], w: 25 }); // 民谣才女
+        candidates.push({ p: PERSONAS[8], w: 15 }); // 综艺担当 (always possible)
+
+        // Boost weight for personas not yet collected (encourages diversity)
+        candidates.forEach(c => {
+            if (!coll[c.p.id]) c.w += 20;
+        });
+
+        // Add a few random uncollected personas as wild cards
+        const uncollected = PERSONAS.filter(p => !coll[p.id] && !candidates.some(c => c.p.id === p.id));
+        uncollected.slice(0, 2).forEach(p => {
+            candidates.push({ p, w: 10 });
+        });
+
+        // Weighted random selection
+        const totalWeight = candidates.reduce((sum, c) => sum + c.w, 0);
+        let roll = Math.random() * totalWeight;
+        for (const c of candidates) {
+            roll -= c.w;
+            if (roll <= 0) return c.p;
+        }
+        return candidates[0].p;
     }
 
     // ===== COLLECTION =====
