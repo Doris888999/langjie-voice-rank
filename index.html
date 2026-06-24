@@ -249,9 +249,12 @@
     <!-- Poster modal -->
     <div class="poster-modal" id="posterModal">
         <canvas id="posterCanvas" width="750" height="1334" style="display:none;"></canvas>
-        <img id="posterImg" style="max-width:90%;max-height:70vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.5);" />
-        <p class="poster-hint">长按上方图片 → 保存到相册</p>
-        <button class="poster-close" id="posterClose">关闭</button>
+        <img id="posterImg" style="max-width:90%;max-height:60vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.5);" />
+        <p class="poster-hint">点击下方按钮保存，或长按图片保存</p>
+        <div style="display:flex;gap:0.8rem;margin-top:1rem;">
+            <button class="action-btn btn-poster" id="savePosterBtn">💾 保存图片</button>
+            <button class="poster-close" id="posterClose">关闭</button>
+        </div>
     </div>
 
     <!-- Unlock toast -->
@@ -327,6 +330,7 @@
     document.getElementById('leaderboardBtn').addEventListener('click', () => { renderLeaderboard(); document.getElementById('leaderboardOverlay').classList.add('show'); });
     document.getElementById('leaderboardClose').addEventListener('click', () => document.getElementById('leaderboardOverlay').classList.remove('show'));
     document.getElementById('posterClose').addEventListener('click', () => document.getElementById('posterModal').classList.remove('show'));
+    document.getElementById('savePosterBtn').addEventListener('click', savePosterImage);
 
     updateCollectionBadge();
 
@@ -434,18 +438,18 @@
         if (pitchHistory.length > 2) { const sq = pitchHistory.map(p=>(p-avgPitch)**2); pitchStdDev = Math.sqrt(sq.reduce((a,b)=>a+b,0)/sq.length); }
         const volumeRange = maxVolume - Math.min(...(volumeHistory.filter(v=>v>0.01).length?volumeHistory.filter(v=>v>0.01):[0]));
 
-        const volumeScore = Math.min(100, avgVolume*500);
-        const pitchScore = Math.min(100, pitchHistory.length > 5 ? 60+Math.min(40, pitchRange/10) : 20);
-        const stabilityScore = pitchStdDev > 0 ? Math.max(0, 100-pitchStdDev/3) : 30;
-        const dynamicsScore = Math.min(100, volumeRange*300);
+        const volumeScore = Math.min(100, avgVolume*800);
+        const pitchScore = Math.min(100, pitchHistory.length > 3 ? 50+Math.min(50, pitchRange/8) : 20);
+        const stabilityScore = pitchStdDev > 0 ? Math.max(20, 100-pitchStdDev/5) : 30;
+        const dynamicsScore = Math.min(100, volumeRange*500);
         const overallScore = volumeScore*0.25 + pitchScore*0.3 + stabilityScore*0.25 + dynamicsScore*0.2;
 
         let rank;
-        if (overallScore >= 85) rank = Math.floor(Math.random()*3)+1;
-        else if (overallScore >= 70) rank = Math.floor(Math.random()*4)+4;
-        else if (overallScore >= 55) rank = Math.floor(Math.random()*5)+8;
-        else if (overallScore >= 40) rank = Math.floor(Math.random()*5)+13;
-        else if (overallScore >= 25) rank = Math.floor(Math.random()*5)+18;
+        if (overallScore >= 75) rank = Math.floor(Math.random()*3)+1;
+        else if (overallScore >= 60) rank = Math.floor(Math.random()*4)+4;
+        else if (overallScore >= 45) rank = Math.floor(Math.random()*5)+8;
+        else if (overallScore >= 30) rank = Math.floor(Math.random()*5)+13;
+        else if (overallScore >= 15) rank = Math.floor(Math.random()*5)+18;
         else rank = Math.floor(Math.random()*7)+23;
 
         // Determine persona
@@ -745,6 +749,20 @@
         // Convert canvas to img for long-press save in WeChat
         const posterImg = document.getElementById('posterImg');
         posterImg.src = canvas.toDataURL('image/png');
+    }
+
+    function savePosterImage() {
+        const canvas = document.getElementById('posterCanvas');
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '浪姐排名_第' + currentResult.rank + '名_' + currentResult.persona.name + '.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 'image/png');
     }
 
     function roundRect(ctx, x, y, w, h, r) {
