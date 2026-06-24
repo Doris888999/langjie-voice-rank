@@ -638,16 +638,62 @@
         const baseUrl = window.location.origin + window.location.pathname;
         const params = new URLSearchParams({ challenger: '我', rank: currentResult.rank, persona: currentResult.persona.name });
         const url = baseUrl + '?' + params.toString();
-        const text = `我在「浪姐声音挑战」中获得了第${currentResult.rank}名（${currentResult.persona.name}），你能超过我吗？👇\n${url}`;
+        const text = `我在「浪姐声音挑战」获得了第${currentResult.rank}名（${currentResult.persona.name}），你能超过我吗？👇\n${url}`;
 
-        if (navigator.clipboard) {
+        // Try multiple copy methods
+        let copied = false;
+
+        // Method 1: Clipboard API
+        if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(text).then(() => {
-                instruction.textContent = '✅ 挑战链接已复制！发给好友吧';
+                showShareSuccess();
+            }).catch(() => {
+                fallbackCopy(text);
             });
-        } else {
-            const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-            instruction.textContent = '✅ 挑战链接已复制！发给好友吧';
+            return;
         }
+
+        // Method 2: execCommand fallback
+        fallbackCopy(text);
+    }
+
+    function fallbackCopy(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try {
+            const ok = document.execCommand('copy');
+            if (ok) { showShareSuccess(); }
+            else { showSharePopup(text); }
+        } catch(e) {
+            showSharePopup(text);
+        }
+        document.body.removeChild(ta);
+    }
+
+    function showShareSuccess() {
+        instruction.textContent = '✅ 挑战链接已复制！发给好友吧';
+        instruction.style.color = '#00ff88';
+        setTimeout(() => { instruction.style.color = ''; }, 3000);
+    }
+
+    function showSharePopup(text) {
+        // If copy fails, show a popup with the text for manual copy
+        const modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:999;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;';
+        modal.innerHTML = `
+            <p style="color:#ffd700;font-size:1.1rem;margin-bottom:1rem;font-weight:700;">长按复制下方文字，发给好友</p>
+            <textarea style="width:90%;max-width:400px;height:150px;border-radius:12px;padding:1rem;font-size:0.9rem;background:#1a1a2e;color:#fff;border:1px solid #ffd700;resize:none;" readonly>${text}</textarea>
+            <button style="margin-top:1.5rem;padding:0.8rem 2rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:30px;color:#fff;font-size:1rem;cursor:pointer;" onclick="this.parentElement.remove()">关闭</button>
+        `;
+        document.body.appendChild(modal);
+        // Auto select text
+        const textarea = modal.querySelector('textarea');
+        textarea.focus();
+        textarea.select();
     }
 
     // ===== POSTER GENERATION =====
