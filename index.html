@@ -248,8 +248,9 @@
 
     <!-- Poster modal -->
     <div class="poster-modal" id="posterModal">
-        <canvas id="posterCanvas" width="750" height="1334"></canvas>
-        <p class="poster-hint">长按图片保存到相册，分享给好友</p>
+        <canvas id="posterCanvas" width="750" height="1334" style="display:none;"></canvas>
+        <img id="posterImg" style="max-width:90%;max-height:70vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.5);" />
+        <p class="poster-hint">长按上方图片 → 保存到相册</p>
         <button class="poster-close" id="posterClose">关闭</button>
     </div>
 
@@ -716,6 +717,9 @@
         ctx.fillText('浪姐声音挑战 · 纯属娱乐', W/2, H-40);
 
         document.getElementById('posterModal').classList.add('show');
+        // Convert canvas to img for long-press save in WeChat
+        const posterImg = document.getElementById('posterImg');
+        posterImg.src = canvas.toDataURL('image/png');
     }
 
     function roundRect(ctx, x, y, w, h, r) {
