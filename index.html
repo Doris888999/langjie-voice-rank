@@ -29,7 +29,8 @@
         .subtitle { color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 2rem; }
         .hide-when-result { transition: all 0.3s; }
         body.show-result .hide-when-result { display: none !important; }
-        body.show-result .container { justify-content: flex-start; padding-top: 1rem; }
+        body.show-result { justify-content: center; }
+        body.show-result .container { padding-top: 0; }
 
         /* Top bar buttons */
         .top-bar { position: fixed; top: 1rem; right: 1rem; z-index: 50; display: flex; gap: 0.5rem; }
@@ -190,10 +191,10 @@
         </div>
 
         <div class="mic-btn hide-when-result" id="micBtn"><span class="mic-icon">🎤</span></div>
-        <p class="instruction" id="instruction">点击麦克风，开始唱歌（录制5秒）</p>
+        <p class="instruction hide-when-result" id="instruction">点击麦克风，开始唱歌（录制5秒）</p>
         <div class="visualizer hide-when-result" id="visualizer"></div>
 
-        <div class="progress-container" id="progressContainer">
+        <div class="progress-container hide-when-result" id="progressContainer">
             <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
             <p class="progress-text" id="progressText">正在录制...</p>
         </div>
@@ -258,7 +259,7 @@
         <img id="posterImg" style="max-width:90%;max-height:60vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.5);" />
         <p class="poster-hint">点击下方按钮保存，或长按图片保存</p>
         <div style="display:flex;gap:0.8rem;margin-top:1rem;">
-            <button class="action-btn btn-poster" id="savePosterBtn">💾 保存图片</button>
+            <button class="action-btn btn-poster" id="savePosterBtn">保存图片</button>
             <button class="poster-close" id="posterClose">关闭</button>
         </div>
     </div>
@@ -648,48 +649,11 @@
         const url = baseUrl + '?' + params.toString();
         const text = `我在「浪姐声音挑战」获得了第${currentResult.rank}名（${currentResult.persona.name}），你能超过我吗？👇\n${url}`;
 
-        // Try multiple copy methods
-        let copied = false;
-
-        // Method 1: Clipboard API
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).then(() => {
-                showShareSuccess();
-            }).catch(() => {
-                fallbackCopy(text);
-            });
-            return;
-        }
-
-        // Method 2: execCommand fallback
-        fallbackCopy(text);
-    }
-
-    function fallbackCopy(text) {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
-        document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        try {
-            const ok = document.execCommand('copy');
-            if (ok) { showShareSuccess(); }
-            else { showSharePopup(text); }
-        } catch(e) {
-            showSharePopup(text);
-        }
-        document.body.removeChild(ta);
-    }
-
-    function showShareSuccess() {
-        instruction.textContent = '✅ 挑战链接已复制！发给好友吧';
-        instruction.style.color = '#00ff88';
-        setTimeout(() => { instruction.style.color = ''; }, 3000);
+        // Always show popup for maximum compatibility (WeChat/Safari/etc)
+        showSharePopup(text);
     }
 
     function showSharePopup(text) {
-        // If copy fails, show a popup with the text for manual copy
         const modal = document.createElement('div');
         modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:999;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;';
         modal.innerHTML = `
@@ -698,7 +662,6 @@
             <button style="margin-top:1.5rem;padding:0.8rem 2rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);border-radius:30px;color:#fff;font-size:1rem;cursor:pointer;" onclick="this.parentElement.remove()">关闭</button>
         `;
         document.body.appendChild(modal);
-        // Auto select text
         const textarea = modal.querySelector('textarea');
         textarea.focus();
         textarea.select();
